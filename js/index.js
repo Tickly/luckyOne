@@ -1,98 +1,78 @@
-!(function(){
+!(function () {
     'use strict';
 
-    var file_num = 43;
-    var photo_row = 6;
-    var photo_col = 10;
-    var photo_num = photo_row * photo_col;
-    var gallery = $('#gallery');
-    var photos = [];
 
-    for (var i=1; i<=photo_num; i++){
-        photos.push('photo/'+Math.ceil(Math.random()*file_num)+'.jpg');
+    function random(max) {
+        return Math.ceil(Math.random() * max)
     }
 
-    var loadedIndex = 1;
 
-    $.each(photos, function(index, photo){
-        var img = document.createElement('img');
-        var link = document.createElement('a');
-        var li = document.createElement('li');
+    var photo_num = 43;
+    var gallery = $('#gallery');
 
-        link.href = 'javascript:;';
-        link.appendChild(img);
-        li.appendChild(link);
 
-        gallery[0].appendChild(li);
+    const Control = {
+        interval: null,
+        init() {
+            // 初始化图片列表
+            for (var i = 1; i <= photo_num; i++) {
 
-        img.onload = function(e){
-            img.onload = null;
-            setTimeout( function(){
-                $(li).addClass('loaded');
-            }, 10*loadedIndex++);
-        };
+                let src = `./photo/${i}.jpg`
 
-        img.src = photo;
+                var img = document.createElement('img');
+                var link = document.createElement('a');
+                var li = document.createElement('li');
 
-        /* 此方式会将重复图片连在一起输出
-        var img = document.createElement('img');
+                link.href = 'javascript:;';
+                link.appendChild(img);
+                li.appendChild(link);
+                li.classList.add('loaded');
 
-        img.onload = function(e){
-            img.onload = null;
-            var link = document.createElement('a');
-            var li = document.createElement('li');
+                gallery[0].appendChild(li);
 
-            link.href = '#';
-            link.appendChild(this);
-            li.appendChild(link);
 
-            gallery[0].appendChild(li);
+                img.src = src;
+            }
+        },
+        start() {
+            this.interval = setInterval(() => {
+                this.show(random(photo_num - 1))
+            }, 100)
+        },
+        stop() {
+            clearInterval(this.interval);
+            this.interval = null;
 
-            setTimeout(function(){
-                $(li).addClass('loaded');
-            }, 25*loadedIndex++);
-        };
-        img.src = photo;
-        */
-    });
+            this.luckyone();
+        },
+        luckyone() {
+            // this.show(2);
+        },
+        show(i) {
+            gallery.find('li.hover').removeClass('hover');
+            gallery.find('li').eq(i).addClass('hover');
+        }
+    }
 
-    var timer_big, timer_small;
-    var timer_small_slow = setInterval(function(){
-        $('#gallery li:eq('+Math.ceil(Math.random()*photo_num)+')')
-            .addClass('animated bounce')
-            .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                $(this)
-                    .removeClass('animated bounce')
-                    .find('img')
-                    .attr('src','photo/'+Math.ceil(Math.random()*file_num)+'.jpg')
 
-            });
-    },100);
+    Control.init();
 
-    $(document).keypress(function(event){
-        if(event.which == 13 || event.which == 32) {
+
+
+    $(document).keypress(function (event) {
+        if (event.which == 13 || event.which == 32) {
             $('#action').click();
         }
     });
 
-    $('#action').click(function(){
-        if (timer_small_slow){
-            clearInterval(timer_small_slow);
-        }
-        if ($(this).data('action') == 'start'){
-            $(this).data('action','stop').html('Stop');
-            timer_big = setInterval(function(){
-                $('#gallery li.focus').removeClass('focus hover');
-                $('#gallery li:eq('+Math.ceil(Math.random()*photo_num)+')').addClass('focus');
-            },100);
-            timer_small = setInterval(function(){
-                $('#gallery li:eq('+Math.ceil(Math.random()*photo_num)+') img').attr('src','photo/'+Math.ceil(Math.random()*file_num)+'.jpg');
-            },1);
-        }else{
-            $(this).data('action','start').html('Go');
-            $('#gallery li.focus').addClass('hover');
-            clearInterval(timer_big);
-            clearInterval(timer_small);
+    $('#action').click(function () {
+        // 有计时器，表示点击了开始
+        if (Control.interval) {
+            $(this).html('Go');
+            Control.stop();
+        } else {
+            $(this).html('Stop');
+            Control.start();
         }
     });
 })();
